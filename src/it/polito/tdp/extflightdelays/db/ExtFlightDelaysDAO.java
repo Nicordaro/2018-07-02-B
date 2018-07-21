@@ -63,6 +63,90 @@ public class ExtFlightDelaysDAO {
 		}
 	}
 
+	public int loadAirportsStats(Airport a) {
+		String sql = "SELECT COUNT(*) as flights from flights WHERE (Origin_airport_id=? OR Destination_airport_id =?)";
+
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, a.getId());
+			st.setInt(2, a.getId());
+			ResultSet rs = st.executeQuery();
+
+			if (rs.next()) {
+				int flights = rs.getInt("flights");
+				conn.close();
+				return flights;
+
+			} else {
+				conn.close();
+				return 0;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+
+	public boolean isConnected(Airport a1, Airport a2) {
+		String sql = "SELECT count(*) as count from flights WHERE (Origin_airport_id=? AND Destination_airport_id=?) OR (Origin_airport_id=? AND Destination_airport_id=?)";
+
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, a1.getId());
+			st.setInt(2, a2.getId());
+			st.setInt(3, a2.getId());
+			st.setInt(4, a1.getId());
+			ResultSet rs = st.executeQuery();
+
+			rs.next();
+			int bool = rs.getInt("count");
+			if (bool > 0) {
+				conn.close();
+				return true;
+			} else {
+				conn.close();
+				return false;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+
+	public double edgeWeight(Airport a1, Airport a2) {
+		String sql = "SELECT AVG(Elapsed_time) as weight from flights WHERE (Origin_airport_id=? AND Destination_airport_id=?) OR (Origin_airport_id=? AND Destination_airport_id =?)";
+
+		try {
+			Connection conn = ConnectDB.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, a1.getId());
+			st.setInt(2, a2.getId());
+			st.setInt(3, a2.getId());
+			st.setInt(4, a1.getId());
+			ResultSet rs = st.executeQuery();
+
+			if (rs.next()) {
+				double weight = rs.getDouble("weight");
+				conn.close();
+				return weight;
+			} else {
+				conn.close();
+				return 0;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("Errore connessione al database");
+			throw new RuntimeException("Error Connection Database");
+		}
+	}
+
 	public List<Flight> loadAllFlights() {
 		String sql = "SELECT * FROM flights";
 		List<Flight> result = new LinkedList<Flight>();
